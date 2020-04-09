@@ -13,6 +13,7 @@
         <td
           v-for="(colData, colIndex) in rowData"
           :key="colIndex"
+          draggable="false"
           :rowspan="colData.rowspan"
           :colspan="colData.colspan"
           :style="colData.style"
@@ -51,19 +52,23 @@ export default {
   mounted() {
     this.tableData = this.generateEmptyTableData(6, 10);
     this.debouncedMouseMove = this.$helper.throttle(this.handleMouseMove);
-    // this.mergeBrick(1,1,2,3);
+    this.mergeBrick(1,1,2,3);
   },
   methods: {
     generateEmptyTableData(row, col) {
-      const colData = new Array(col).fill({text: '', rowspan: 1, seleted: false, colspan: 1, style: {display: 'visible', background: ''}});
+      const colData = new Array(col).fill({text: '', rowspan: 1, merged: false, seleted: false, colspan: 1, style: {display: 'visible', background: ''}});
       return this.$helper.deepClone(new Array(row).fill(colData));
     },
     mergeBrick(x, y, xLen, yLen) {
-      this.tableData[x][y].rowspan = xLen;
-      this.tableData[x][y].colspan = yLen;
-      this.hideRest(x, y, xLen, yLen);
+      const element = this.tableData[x][y];
+      element.rowspan = xLen;
+      element.colspan = yLen;
+      element.maxRow = x + xLen - 1;
+      element.maxCol = y + yLen - 1;
+      element.merged = true;
+      this.hideRest(element, x, y, xLen, yLen);
     },
-    hideRest(x, y, xLen, yLen) {
+    hideRest(colData, x, y, xLen, yLen) {
       // 处理当前行
       const currentRowData = this.tableData[x];
       for (let yIndex = y + 1; yIndex < yLen + 1; yIndex++) {
@@ -72,14 +77,13 @@ export default {
       }
 
       // 处理余下行
-      this.mapArea(x + 1, y, xLen + 1, yLen + 1, (element) => {
+      this.mapArea({}, x + 1, y, xLen, yLen, (element) => {
           element.style.display = 'none';
       });
     },
     handleMouseDown(colData, rowIndex, colIndex) {
       this.resetStyle('background', '');
 
-      colData.style.background = "blue";
       this.isChoosingMode = true;
       this.activeRowIndex.start = rowIndex;
       this.activeColIndex.start = colIndex;
@@ -87,7 +91,7 @@ export default {
     handleMouseMove(colData, rowIndex, colIndex) {
       if (this.isChoosingMode) {
         this.resetStyle('background', '');
-        this.highlight(this.activeRowIndex.start, this.activeColIndex.start, rowIndex, colIndex);
+        this.highlight(colData, this.activeRowIndex.start, this.activeColIndex.start, rowIndex, colIndex);
       }
     },
     handleMouseUp() {
@@ -102,20 +106,27 @@ export default {
       });
     },
     // 高亮选中
-    highlight(rowStart, colStart, rowEnd, colEnd) {
-      this.mapArea(rowStart, colStart, rowEnd, colEnd, (element) => {
+    highlight(colData, rowStart, colStart, rowEnd, colEnd) {
+      this.mapArea(colData, rowStart, colStart, rowEnd, colEnd, (element) => {
         element.style.background = 'blue';
       });
     },
     // 创建选区
-    mapArea(rowStart, colStart, rowEnd, colEnd, callback) {
+    mapArea(colData, rowStart, colStart, rowEnd, colEnd, callback) {
       // 向下
       if (rowEnd >= rowStart) {
+        // 对于单元格，需要选中最大y值
+        if (colData.merged) {
+          rowEnd = colData.maxRow;
+        }
         for (let yIndex = rowStart; yIndex < rowEnd + 1; yIndex++) {
           const leftedRowData = this.tableData[yIndex];
           // 向右
           if (colEnd > colStart) {
-            console.log('右下');
+            // 对于单元格，需要选中最大x值
+            if (colData.merged) {
+              colEnd = colData.maxCol;
+            }
             for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
               const element = leftedRowData[xIndex];
               callback(element);
@@ -139,6 +150,11 @@ export default {
           // 向右
           if (colEnd > colStart) {
             console.log('右上');
+
+            // 对于单元格，需要选中最大x值
+            if (colData.merged) {
+              colEnd = colData.maxCol;
+            }
             for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
               const element = leftedRowData[xIndex];
               callback(element);
