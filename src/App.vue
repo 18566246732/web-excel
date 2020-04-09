@@ -52,8 +52,8 @@ export default {
   mounted() {
     this.tableData = this.generateEmptyTableData(6, 10);
     this.debouncedMouseMove = this.$helper.throttle(this.handleMouseMove);
-    this.mergeBrick(2, 1, 2, 2);
-    // this.mergeBrick(3,3,2,2);
+    // this.mergeBrick(2, 1, 1, 2);
+    this.mergeBrick(3,3,2,2);
   },
   methods: {
     generateEmptyTableData(row, col) {
@@ -122,8 +122,6 @@ export default {
     },
     // 创建选区
     mapArea(colData, rowStart, colStart, rowEnd, colEnd, callback) {
-      console.log(rowStart, colStart, rowEnd, colEnd, 'rowStart, colStart, rowEnd, colEnd');
-      
       // 向下
       if (rowEnd >= rowStart) {
         // 对于单元格，需要选中最大y值
@@ -143,10 +141,30 @@ export default {
             for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
               const element = leftedRowData[xIndex];
               // 当选区包含合并块，则重置边界值
-              if (element.master && element != colData && (element.maxRow > rowEnd || element.maxCol > colEnd)) {
-                rowEnd = Math.max(element.maxRow, rowEnd);
-                colEnd = Math.max(element.maxCol, colEnd);
-                this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+              if (element != colData) {
+                // 方块在上，修改终点
+                if (element.master && element.maxCol > colEnd) {
+                    colEnd  = element.maxCol;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在上，修改起点
+                if (element.slave && element.parent.rowIndex < rowStart) {
+                    rowStart = element.parent.rowIndex;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在下，修改终点
+                if (element.master && element.maxRow > rowEnd) {
+                    rowEnd = element.maxRow;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在下，修改起点
+                if (element.slave && element.parent.colIndex < colStart) {
+                    colStart = element.parent.colIndex;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
               }
               callback(element);
             }
@@ -159,13 +177,28 @@ export default {
               const element = leftedRowData[xIndex];
               // 当选区包含合并块，则重置边界值
               if (element != colData) {
-                if (element.master && element.maxRow > rowEnd) {
-                  rowEnd = Math.max(element.maxRow, rowEnd);
-                  this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
-                }
+                // 方块在上，修改终点
                 if (element.slave && element.parent.colIndex < colEnd) {
-                  colEnd = Math.min(element.parent.colIndex, colEnd);
-                  this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                    colEnd  = element.parent.colIndex;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在上，修改起点
+                if (element.slave && element.parent.rowIndex < rowStart) {
+                    rowStart = element.parent.rowIndex;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在下，修改终点
+                if (element.master && element.maxRow > rowEnd) {
+                    rowEnd  = element.maxRow;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在下，修改起点
+                if (element.master && element.maxCol > colStart) {
+                    colStart = element.maxCol;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
                 }
               }
               callback(element);
@@ -189,13 +222,28 @@ export default {
               const element = leftedRowData[xIndex];
               // 当选区包含合并块，则重置边界值
               if (element != colData) {
-                if (element.master && element.maxCol > colEnd) {
-                  colEnd = Math.max(element.maxCol, colEnd);
-                  this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
-                }
+                // 方块在上，修改终点
                 if (element.slave && element.parent.rowIndex < rowEnd) {
-                  rowEnd = Math.min(element.parent.rowIndex, colEnd);
-                  this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                    rowEnd  = element.parent.rowIndex;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在上，修改起点
+                if (element.slave && element.parent.colIndex < colStart) {
+                    colStart = element.parent.colIndex;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在下，修改终点
+                if (element.master && element.maxCol > colEnd) {
+                    colEnd = element.maxCol;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在下，修改起点
+                if (element.master && element.maxRow > rowStart) {
+                    rowStart = element.maxRow;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
                 }
               }
 
@@ -208,11 +256,46 @@ export default {
             for (let xIndex = colStart; xIndex > colEnd - 1; xIndex--) {
               const element = leftedRowData[xIndex];
               // 当选区包含合并块，则重置边界值
-              if (element != colData && element.slave && (element.parent.rowIndex < rowEnd || element.parent.colIndex < colEnd)) {
-                rowEnd = Math.min(element.parent.rowIndex, rowEnd);
-                colEnd = Math.min(element.parent.colIndex, colEnd);
-                this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+              if (element != colData) {
+                // 方块在上，修改终点
+                if (element.slave && element.parent.rowIndex < rowEnd) {
+                    rowEnd  = element.parent.rowIndex;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在上，修改起点
+                if (element.master && element.maxCol > colStart) {
+                    colStart = element.maxCol;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在下，修改终点
+                if (element.slave && element.parent.colIndex < colEnd) {
+                    colEnd = element.parent.colIndex;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+                // 方块在下，修改起点
+                if (element.master && element.maxRow > rowStart) {
+                    rowStart = element.maxRow;
+                    this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+                }
+
+
+                // if (element.slave && (element.parent.rowIndex < rowEnd || element.parent.colIndex < colEnd)) {
+                //   rowEnd = Math.min(element.parent.rowIndex, rowEnd);
+                //   colEnd = Math.min(element.parent.colIndex, colEnd);
+                //   this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+                // }
+  
+                // // 修改起点
+                // if (element.master && (element.maxCol > colStart || element.maxRow > rowStart)) {
+                //   colStart = Math.max(element.maxCol, colStart);
+                //   rowStart = Math.max(element.maxRow, rowStart);
+                //   this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+                // }
               }
+
               callback(element);
             }
           }
