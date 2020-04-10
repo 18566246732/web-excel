@@ -1,6 +1,9 @@
 <template>
   <div id="app">
-    123
+    <Menu
+      :mergeable="isMergeAble"
+      @merge="handleMerge"
+    />
     <table
       class="playground"
       border="1"
@@ -29,10 +32,12 @@
 </template>
 
 <script>
+import Menu from "./components/Menu";
 
 export default {
   name: 'App',
   components: {
+    Menu
   },
   data() {
     return {
@@ -42,18 +47,23 @@ export default {
         start: -1,
         len: 0
       },
+      start: {
+        rowIndex: -1,
+        colIndex: -1
+      },
       activeColIndex: {
         start: -1,
         len: 0
       },
+      isMergeAble: false,
       debouncedMouseMove: () => {}
     };
   },
   mounted() {
     this.tableData = this.generateEmptyTableData(6, 10);
     this.debouncedMouseMove = this.$helper.throttle(this.handleMouseMove);
-    // this.mergeBrick(2, 1, 1, 2);
-    this.mergeBrick(3,3,2,2);
+    // this.mergeBrick(2, 3, 1, 2);
+    // this.mergeBrick(3,3,2,2);
   },
   methods: {
     generateEmptyTableData(row, col) {
@@ -94,17 +104,18 @@ export default {
       this.resetStyle('background', '');
 
       this.isChoosingMode = true;
-      this.activeRowIndex.start = rowIndex;
-      this.activeColIndex.start = colIndex;
+      this.start.rowIndex = rowIndex;
+      this.start.colIndex = colIndex;
     },
     handleMouseMove(colData, rowIndex, colIndex) {
       if (this.isChoosingMode) {
         this.resetStyle('background', '');
-        this.highlight(colData, this.activeRowIndex.start, this.activeColIndex.start, rowIndex, colIndex);
+        this.highlight(colData, this.start.rowIndex, this.start.colIndex, rowIndex, colIndex);
       }
     },
     handleMouseUp() {
       this.isChoosingMode = false;
+      this.isMergeAble = true;
     },
     // 重置所有单元格的样式
     resetStyle(key, value) {
@@ -122,6 +133,7 @@ export default {
     },
     // 创建选区
     mapArea(colData, rowStart, colStart, rowEnd, colEnd, callback) {
+      this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
       // 向下
       if (rowEnd >= rowStart) {
         // 对于单元格，需要选中最大y值
@@ -280,27 +292,25 @@ export default {
                     rowStart = element.maxRow;
                     this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
                 }
-
-
-                // if (element.slave && (element.parent.rowIndex < rowEnd || element.parent.colIndex < colEnd)) {
-                //   rowEnd = Math.min(element.parent.rowIndex, rowEnd);
-                //   colEnd = Math.min(element.parent.colIndex, colEnd);
-                //   this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-                // }
-  
-                // // 修改起点
-                // if (element.master && (element.maxCol > colStart || element.maxRow > rowStart)) {
-                //   colStart = Math.max(element.maxCol, colStart);
-                //   rowStart = Math.max(element.maxRow, rowStart);
-                //   this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-                // }
               }
-
               callback(element);
             }
           }
         }
       }
+    },
+    handleMerge() {
+      this.mergeBrick(this.activeRowIndex.start, this.activeColIndex.start, this.activeRowIndex.len, this.activeColIndex.len);
+    },
+    updateActiveIndex(rowStart, colStart, rowEnd, colEnd) {
+      const startY = Math.min(rowStart, rowEnd);
+      const startX = Math.min(colStart, colEnd);
+      const endY = Math.max(rowStart, rowEnd);
+      const endX = Math.max(colStart, colEnd);
+      this.activeRowIndex.start = startY;
+      this.activeRowIndex.len = endY - startY + 1;
+      this.activeColIndex.start = startX;
+      this.activeColIndex.len = endX - startX + 1;
     }
   }
 };
