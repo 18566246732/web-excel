@@ -2,6 +2,7 @@
   <div id="app">
     <Menu
       :mergeable="isMergeAble"
+      :reverse-merge="reverseMerege"
       @merge="handleMerge"
     />
     <table
@@ -63,8 +64,6 @@ export default {
   mounted() {
     this.tableData = this.generateEmptyTableData(6, 10);
     this.debouncedMouseMove = this.$helper.throttle(this.handleMouseMove);
-    // this.mergeBrick(2, 3, 1, 2);
-    // this.mergeBrick(3,3,2,2);
   },
   methods: {
     generateEmptyTableData(row, col) {
@@ -73,6 +72,8 @@ export default {
     },
     mergeBrick(x, y, xLen, yLen) {
       const element = this.tableData[x][y];
+      console.log(this.reverseMerege, 'this.reverseMerege====', x, y);
+
       if (this.reverseMerege) {
         if (element.master) {
           element.rowspan = 1;
@@ -93,22 +94,20 @@ export default {
         element.maxRow = x + xLen - 1;
         element.maxCol = y + yLen - 1;
         element.master = true;
+        // this.reverseMerege = true;
       }
       this.processRest(element, x, y, xLen, yLen, this.reverseMerege);
     },
     processRest(colData, x, y, xLen, yLen, reverse = false) {
-      console.log(x, y, xLen, yLen, 'x, y, xLen, yLen');// 1241
+      console.log(x, y, xLen, yLen, 'x, y, xLen, yLen');
 
       // 处理当前行
       const currentRowData = this.tableData[x];
       for (let yIndex = y + 1; yIndex < y + yLen; yIndex++) {
         const element = currentRowData[yIndex];
-        console.log(reverse, 'reverse');
 
         if (reverse) {
           if (element.slave) {
-            console.log('slave');
-
             element.slave = false;
             element.style.display = 'table-cell';
             // element.parent.rowIndex = x;
@@ -128,17 +127,14 @@ export default {
         element.slave = true;
         element.parent.rowIndex = x;
         element.parent.colIndex = y;
+        if (xLen <= 1) {
+          this.reverseMerege = true;
+        }
       }
-
-      // 当，行数大于1，处理余下行
+      // 当行数大于1，处理余下行
       if (xLen > 1) {
-        console.log(1111);
-
         this.mapArea({}, x + 1, y, x + xLen - 1, y + yLen - 1, (element) => {
-
-          console.log(reverse, 'reverse--');
           if (reverse) {
-
             if (element.slave) {
               element.slave = false;
               element.style.display = 'table-cell';
@@ -159,6 +155,7 @@ export default {
           element.slave = true;
           element.parent.rowIndex = x;
           element.parent.colIndex = y;
+          this.reverseMerege = true;
         });
       }
     },
@@ -190,6 +187,8 @@ export default {
     highlight(colData, rowStart, colStart, rowEnd, colEnd) {
       if (colStart != colEnd || rowStart != rowEnd) {
         this.isMergeAble = true;
+        // 默认情况下是合并
+        this.reverseMerege = false;
       }
       this.mapArea(colData, rowStart, colStart, rowEnd, colEnd, (element) => {
         element.style.background = 'blue';
@@ -209,7 +208,10 @@ export default {
     },
     // 创建选区
     mapArea(colData, rowStart, colStart, rowEnd, colEnd, callback) {
-      this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
+      // 在merge状态时，禁止更新激活的下标
+      if (this.isChoosingMode) {
+        this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
+      }
       // 向下
       if (rowEnd >= rowStart) {
         // 对于合并单元格，需要选中最大y值

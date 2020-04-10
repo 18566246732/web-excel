@@ -6,7 +6,7 @@
           :disabled="!mergeable"
           @click="merge"
         >
-          合并
+          {{ reverseMerge ? '取消合并' : '合并' }}
         </button>
       </li>
     </ul>
@@ -16,6 +16,10 @@
 export default {
   props: {
     mergeable: {
+      type: Boolean,
+      default: false
+    },
+    reverseMerge: {
       type: Boolean,
       default: false
     }
