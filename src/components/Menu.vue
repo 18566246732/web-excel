@@ -35,5 +35,14 @@ export default {
   .menus {
     list-style: none;
     display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: grey;
+    align-items: center;
+    color: white;
+    margin: 0;
   }
 </style>

@@ -9,18 +9,52 @@
       class="playground"
       border="1"
       cellspacing="0"
+      @mousemove="handleDraging"
+      @mouseup="handleDragOver"
     >
+      <tr>
+        <td />
+        <td
+          v-for="(colData, index) in tableRowHeaderData"
+          :key="index"
+          :style="colData.style"
+          class="header"
+          @mousedown="handleStartDrag"
+        >
+          <span class="header-content">{{ index + 1 }}</span>
+          <div
+            class="drag-area row"
+            @mousedown="handleLockTarget(colData, 'row')"
+          />
+        </td>
+      </tr>
       <tr
         v-for="(rowData, rowIndex) in tableData"
         :key="rowIndex"
       >
         <td
+          class="header"
+          :style="tableColHeaderData[rowIndex].style"
+          @mousedown="handleStartDrag"
+        >
+          <span class="header-content">{{ rowIndex + 1 }}</span>
+          <div
+            class="drag-area col"
+            @mousedown="handleLockTarget(tableColHeaderData[rowIndex], 'col')"
+            @mouseup="handleDragOver"
+          />
+        </td>
+        <td
           v-for="(colData, colIndex) in rowData"
           :key="colIndex"
+          :ref="`${rowIndex}-${colIndex}`"
           draggable="false"
+          :contenteditable="colData.contenteditable"
           :rowspan="colData.rowspan"
           :colspan="colData.colspan"
           :style="colData.style"
+          @blur="colData.contenteditable = false"
+          @dblclick="handleEdit(colData, `${rowIndex}-${colIndex}`)"
           @mousedown="handleMouseDown(colData, rowIndex, colIndex)"
           @mousemove="debouncedMouseMove(colData, rowIndex, colIndex)"
           @mouseup="handleMouseUp"
@@ -56,16 +90,103 @@ export default {
         start: -1,
         len: 0
       },
+      startDrag: {
+        x: 0,
+        y: 0
+      },
+      dragType: "",
+      tableRowHeaderData: [],
+      tableColHeaderData: [],
+      currentDraggableTarget: {},
+      isDragging: false,
       reverseMerege: false,
       isMergeAble: false,
+      targetPosition: 0, // 被拖拽对象的初始位置
       debouncedMouseMove: () => {}
     };
   },
   mounted() {
-    this.tableData = this.generateEmptyTableData(6, 10);
+    const row = 6;
+    const col = 10;
+    this.tableData = this.generateEmptyTableData(row, col);
+    const tableRowHeaderData = new Array(col).fill({
+      style: {
+        'min-width': '80px'
+      }
+    });
+    const tableColHeaderData = new Array(row).fill({
+      style: {
+        'height': '40px'
+      }
+    });
+    this.tableRowHeaderData = this.$helper.deepClone(tableRowHeaderData);
+    this.tableColHeaderData = this.$helper.deepClone(tableColHeaderData);
+    this.generateHeader(this.tableData);
     this.debouncedMouseMove = this.$helper.throttle(this.handleMouseMove);
   },
   methods: {
+    handleLockTarget(colData, dragType) {
+      this.currentDraggableTarget = colData;
+      this.dragType = dragType;
+    },
+    handleStartDrag(e) {
+      this.isDragging = true;
+      if (this.dragType === 'row') {
+        this.startDrag.x = e.clientX;
+        this.targetPosition = this.currentDraggableTarget.style['min-width'];
+      } else {
+        this.startDrag.y = e.clientY;
+        this.targetPosition = this.currentDraggableTarget.style['height'];
+      }
+    },
+    handleDraging(e) {
+
+      if (!this.isDragging) {
+        return;
+      }
+      if (this.dragType === 'row') {
+        const distance = e.clientX - this.startDrag.x;
+        this.currentDraggableTarget.style['min-width'] = (this.normalizeWidth(this.targetPosition) + distance)+ 'px';
+      } else {
+        const distance = e.clientY - this.startDrag.y;
+        this.currentDraggableTarget.style['height'] = (this.normalizeWidth(this.targetPosition) + distance)+ 'px';
+      }
+    },
+    normalizeWidth(width) {
+      if (typeof width === 'string' && width.endsWith('px')) {
+        return Number(width.slice(0, -2));
+      }
+      return Number(width);
+    },
+    handleDragOver(colData, e, isRow = true) {
+      this.isDragging = false;
+      this.currentDraggableTarget = {};
+    },
+    handleEdit(colData, refIndex) {
+      colData.contenteditable = true;
+
+      // vue是异步刷新队列，dom操作需要在异步回调中执行
+      this.$nextTick(() => {
+        this.$refs[refIndex][0].focus();
+      });
+    },
+    generateHeader(tableData = []) {
+      // 实现行头
+      // tableData[0].forEach((element, index) => {
+      //   element.style.background = 'grey';
+      //   element.style.color = 'white';
+      //   element.style.border = '1px solid white';
+      //   element.text = index;
+      // });
+
+      // // 实现列头
+      // tableData.forEach((row, index) => {
+      //   row[0].text = index;
+      //   row[0].style.background = 'grey';
+      //   row[0].style.border = '1px solid white';
+      //   row[0].style.color = 'white';
+      // });
+    },
     generateEmptyTableData(row, col) {
       const colData = new Array(col).fill({
         text: "",
@@ -74,7 +195,8 @@ export default {
         master: false,
         seleted: false,
         colspan: 1,
-        style: { display: "table-cell", background: "" }
+        contenteditable: false,
+        style: { width: 0, display: "table-cell", background: "", border: "1px solid #80808036" }
       });
       return this.$helper.deepClone(new Array(row).fill(colData));
     },
@@ -101,8 +223,6 @@ export default {
       this.processRest(element, x, y, xLen, yLen, this.reverseMerege);
     },
     processRest(colData, x, y, xLen, yLen, reverse = false) {
-      console.log(x, y, xLen, yLen, "x, y, xLen, yLen");
-
       // 处理当前行
       const currentRowData = this.tableData[x];
       for (let yIndex = y + 1; yIndex < y + yLen; yIndex++) {
@@ -191,7 +311,7 @@ export default {
         this.reverseMerege = false;
       }
       this.mapArea(colData, rowStart, colStart, rowEnd, colEnd, element => {
-        element.style.background = "blue";
+        element.style.background = "#03a9f46e";
       });
     },
     expandRightBottom() {},
@@ -555,10 +675,51 @@ export default {
 
 .playground {
   border: 1px;
+  margin-top: 80px;
+  overflow-x: scroll;
   td {
     height: 40px;
     min-width: 80px;
     // border: 1px solid grey;
+  }
+  .content {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .header {
+    background: grey;
+    color: white;
+    position: relative;;
+    // pointer-events: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -moz-user-select: none;
+    &.row {
+      cursor: e-resize;
+    }
+    .header-content {
+      width: 80%;
+      display: inline-block;
+      pointer-events: none;
+    }
+  }
+}
+.drag-area {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  &.row {
+    cursor: e-resize;
+    width: 3px;
+    top: 0;
+  }
+  &.col {
+    height: 3px;
+    left: 0;
+    cursor: s-resize;
   }
 }
 </style>
