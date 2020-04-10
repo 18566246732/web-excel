@@ -72,21 +72,15 @@ export default {
     },
     mergeBrick(x, y, xLen, yLen) {
       const element = this.tableData[x][y];
-      console.log(this.reverseMerege, 'this.reverseMerege====', x, y);
-
       if (this.reverseMerege) {
         if (element.master) {
           element.rowspan = 1;
           element.colspan = 1;
-          // element.maxRow = x + xLen - 1;
-          // element.maxCol = y + yLen - 1;
           element.master = false;
         }
         if (element.slave) {
           element.slave = false;
           element.style.display = 'table-cell';
-          // element.parent.rowIndex = x;
-          // element.parent.colIndex = y;
         }
       } else {
         element.rowspan = xLen;
@@ -110,14 +104,10 @@ export default {
           if (element.slave) {
             element.slave = false;
             element.style.display = 'table-cell';
-            // element.parent.rowIndex = x;
-            // element.parent.colIndex = y;
           }
           if (element.master) {
             element.rowspan = 1;
             element.colspan = 1;
-            // element.maxRow = x + xLen - 1;
-            // element.maxCol = y + yLen - 1;
             element.master = false;
           }
           this.reverseMerege = false;
@@ -138,14 +128,10 @@ export default {
             if (element.slave) {
               element.slave = false;
               element.style.display = 'table-cell';
-              // element.parent.rowIndex = x;
-              // element.parent.colIndex = y;
             }
             if (element.master) {
               element.rowspan = 1;
               element.colspan = 1;
-              // element.maxRow = x + xLen - 1;
-              // element.maxCol = y + yLen - 1;
               element.master = false;
             }
             this.reverseMerege = false;
@@ -219,6 +205,7 @@ export default {
           rowEnd = colData.maxRow;
           this.reverseMerege = true;
           this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
+          this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
         }
         for (let yIndex = rowStart; yIndex < rowEnd + 1; yIndex++) {
           const leftedRowData = this.tableData[yIndex];
@@ -229,6 +216,7 @@ export default {
               colEnd = colData.maxCol;
               this.reverseMerege = true;
               this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
+              this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
             }
             for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
               const element = leftedRowData[xIndex];
@@ -274,6 +262,8 @@ export default {
               this.reverseMerege = true;
               this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
             }
+            console.log(colData, 'colData');
+
 
             for (let xIndex = colStart; xIndex > colEnd - 1; xIndex--) {
               const element = leftedRowData[xIndex];
@@ -332,6 +322,7 @@ export default {
           colEnd = colData.maxCol;
           this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
           this.reverseMerege = true;
+          this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
         }
         for (let yIndex = rowStart; yIndex > rowEnd - 1; yIndex--) {
           const leftedRowData = this.tableData[yIndex];
