@@ -3,6 +3,7 @@
     <Menu
       :mergeable="isMergeAble"
       :reverse-merge="reverseMerege"
+      @draw-borders="drawBorders"
       @merge="handleMerge"
     />
     <table
@@ -33,7 +34,7 @@
         :key="rowIndex"
       >
         <td
-          class="header"
+          class="header col"
           :style="tableColHeaderData[rowIndex].style"
           @mousedown="handleStartDrag"
         >
@@ -121,7 +122,6 @@ export default {
     });
     this.tableRowHeaderData = this.$helper.deepClone(tableRowHeaderData);
     this.tableColHeaderData = this.$helper.deepClone(tableColHeaderData);
-    this.generateHeader(this.tableData);
     this.debouncedMouseMove = this.$helper.throttle(this.handleMouseMove);
   },
   methods: {
@@ -140,7 +140,6 @@ export default {
       }
     },
     handleDraging(e) {
-
       if (!this.isDragging) {
         return;
       }
@@ -150,6 +149,18 @@ export default {
       } else {
         const distance = e.clientY - this.startDrag.y;
         this.currentDraggableTarget.style['height'] = (this.normalizeWidth(this.targetPosition) + distance)+ 'px';
+      }
+    },
+    drawBorders() {
+      // left and right
+      for (let i = this.activeRowIndex.start; i < this.activeRowIndex.start + this.activeRowIndex.len; i++) {
+        this.tableData[i][this.activeColIndex.start].style['border-left'] = '1px solid black';
+        this.tableData[i][this.activeColIndex.start + this.activeColIndex.len - 1].style['border-right'] = '1px solid black';
+      }
+      // top and bottom
+      for (let i = this.activeColIndex.start; i < this.activeColIndex.start + this.activeColIndex.len; i++) {
+        this.tableData[this.activeRowIndex.start][i].style['border-top'] = '1px solid black';
+        this.tableData[this.activeRowIndex.start + this.activeRowIndex.len - 1][i].style['border-bottom'] = '1px solid black';
       }
     },
     normalizeWidth(width) {
@@ -164,28 +175,10 @@ export default {
     },
     handleEdit(colData, refIndex) {
       colData.contenteditable = true;
-
       // vue是异步刷新队列，dom操作需要在异步回调中执行
       this.$nextTick(() => {
         this.$refs[refIndex][0].focus();
       });
-    },
-    generateHeader(tableData = []) {
-      // 实现行头
-      // tableData[0].forEach((element, index) => {
-      //   element.style.background = 'grey';
-      //   element.style.color = 'white';
-      //   element.style.border = '1px solid white';
-      //   element.text = index;
-      // });
-
-      // // 实现列头
-      // tableData.forEach((row, index) => {
-      //   row[0].text = index;
-      //   row[0].style.background = 'grey';
-      //   row[0].style.border = '1px solid white';
-      //   row[0].style.color = 'white';
-      // });
     },
     generateEmptyTableData(row, col) {
       const colData = new Array(col).fill({
@@ -196,7 +189,15 @@ export default {
         seleted: false,
         colspan: 1,
         contenteditable: false,
-        style: { width: 0, display: "table-cell", background: "", border: "1px solid #80808036" }
+        style: {
+          width: 0,
+          display: "table-cell",
+          background: "",
+          'border-top': "1px solid #80808036",
+          'border-bottom': '1px solid #80808036',
+          'border-left': "1px solid #80808036",
+          'border-right': '1px solid #80808036',
+        }
       });
       return this.$helper.deepClone(new Array(row).fill(colData));
     },
@@ -679,8 +680,7 @@ export default {
   overflow-x: scroll;
   td {
     height: 40px;
-    min-width: 80px;
-    // border: 1px solid grey;
+    min-width: 100px;
   }
   .content {
     width: 100%;
@@ -697,8 +697,8 @@ export default {
     -webkit-user-select: none;
     user-select: none;
     -moz-user-select: none;
-    &.row {
-      cursor: e-resize;
+    &.col {
+      min-width: 80px;
     }
     .header-content {
       width: 80%;
