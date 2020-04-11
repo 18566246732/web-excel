@@ -381,6 +381,7 @@ export default {
     },
     // 高亮选中
     highlight(colData, rowStart, colStart, rowEnd, colEnd) {
+
       console.log('highlight');
 
       if (colStart != colEnd || rowStart != rowEnd) {
@@ -391,185 +392,6 @@ export default {
       this.mapArea(colData, rowStart, colStart, rowEnd, colEnd, element => {
         element.style.background = "#03a9f46e";
       });
-    },
-    expandRightBottom(
-      colData,
-      leftedRowData,
-      rowStart,
-      colStart,
-      rowEnd,
-      colEnd,
-      callback
-    ) {
-      for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
-        const element = leftedRowData[xIndex];
-        // 当选区包含合并块，则重置边界值
-        if (element != colData) {
-          // 方块在上，修改终点
-          if (element.master && element.maxCol > colEnd) {
-            this.reverseMerege = true;
-            colEnd = element.maxCol;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在上，修改起点
-          if (element.slave && element.parent.rowIndex < rowStart) {
-            this.reverseMerege = true;
-            rowStart = element.parent.rowIndex;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在下，修改终点
-          if (element.master && element.maxRow > rowEnd) {
-            this.reverseMerege = true;
-            rowEnd = element.maxRow;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在下，修改起点
-          if (element.slave && element.parent.colIndex < colStart) {
-            this.reverseMerege = true;
-            colStart = element.parent.colIndex;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-        }
-        callback(element);
-      }
-    },
-    expandRightTop(
-      colData,
-      leftedRowData,
-      rowStart,
-      colStart,
-      rowEnd,
-      colEnd,
-      callback
-    ) {
-      for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
-        const element = leftedRowData[xIndex];
-        // 当选区包含合并块，则重置边界值
-        if (element != colData) {
-          // 方块在上，修改终点
-          if (element.slave && element.parent.rowIndex < rowEnd) {
-            this.reverseMerege = true;
-            rowEnd = element.parent.rowIndex;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在上，修改起点
-          if (element.slave && element.parent.colIndex < colStart) {
-            this.reverseMerege = true;
-            colStart = element.parent.colIndex;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在下，修改终点
-          if (element.master && element.maxCol > colEnd) {
-            this.reverseMerege = true;
-            colEnd = element.maxCol;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在下，修改起点
-          if (element.master && element.maxRow > rowStart) {
-            this.reverseMerege = true;
-            rowStart = element.maxRow;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-        }
-
-        callback(element);
-      }
-    },
-    expandLeftBottom(
-      colData,
-      leftedRowData,
-      rowStart,
-      colStart,
-      rowEnd,
-      colEnd,
-      callback
-    ) {
-      for (let xIndex = colStart; xIndex > colEnd - 1; xIndex--) {
-        const element = leftedRowData[xIndex];
-        console.log(element != colData, 'element != colData');
-
-        // 当选区包含合并块，则重置边界值
-        if (element != colData) {
-          // 方块在上，修改终点
-          if (element.slave && element.parent.colIndex < colEnd) {
-            this.reverseMerege = true;
-            colEnd = element.parent.colIndex;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在上，修改起点
-          if (element.slave && element.parent.rowIndex < rowStart) {
-            this.reverseMerege = true;
-            rowStart = element.parent.rowIndex;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在下，修改终点
-          if (element.master && element.maxRow > rowEnd) {
-            this.reverseMerege = true;
-            rowEnd = element.maxRow;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在下，修改起点
-          if (element.master && element.maxCol > colStart) {
-            this.reverseMerege = true;
-            colStart = element.maxCol;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-        }
-        callback(element);
-      }
-    },
-    expandLeftTop(
-      colData,
-      leftedRowData,
-      rowStart,
-      colStart,
-      rowEnd,
-      colEnd,
-      callback
-    ) {
-      for (let xIndex = colStart; xIndex > colEnd - 1; xIndex--) {
-        const element = leftedRowData[xIndex];
-        // 当选区包含合并块，则重置边界值
-        if (element != colData) {
-          // 方块在上，修改终点
-          if (element.slave && element.parent.rowIndex < rowEnd) {
-            this.reverseMerege = true;
-            rowEnd = element.parent.rowIndex;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在上，修改起点
-          if (element.master && element.maxCol > colStart) {
-            this.reverseMerege = true;
-            colStart = element.maxCol;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在下，修改终点
-          if (element.slave && element.parent.colIndex < colEnd) {
-            this.reverseMerege = true;
-            colEnd = element.parent.colIndex;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-
-          // 方块在下，修改起点
-          if (element.master && element.maxRow > rowStart) {
-            this.reverseMerege = true;
-            rowStart = element.maxRow;
-            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
-          }
-        }
-        callback(element);
-      }
     },
     expandLeft(
       element, rowStart, colStart, rowEnd, colEnd, callback
@@ -644,10 +466,27 @@ export default {
         this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
       }
     },
+    expandSelf(
+      element, rowStart, colStart, rowEnd, colEnd, callback
+    ) {
+      console.log('expandSelf');
+      if (element.master) {
+        // 扩展列
+        if (element.maxCol > colEnd) {
+          this.reverseMerege = true;
+          colEnd = element.maxCol;
+          this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+        }
+        // 扩展行
+        if (element.maxRow > rowEnd) {
+          this.reverseMerege = true;
+          rowEnd = element.maxRow;
+          this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+        }
+      }
+    },
     // 创建选区
     mapArea(colData, rowStart, colStart, rowEnd, colEnd, callback) {
-      console.log(rowStart, colStart, rowEnd, colEnd, 'rowStart, colStart, rowEnd, colEnd');
-
       // 在merge状态时，禁止更新激活的下标
       if (this.isChoosingMode) {
         this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
@@ -660,7 +499,8 @@ export default {
         rowEnd > rowStart ? 'Bottom' : '',
         rowEnd < rowStart ? 'Top' : '',
         colEnd > colStart ? 'Right' : '',
-        colEnd < colStart ? 'Left' : ''
+        colEnd < colStart ? 'Left' : '',
+        (rowEnd === rowStart && colEnd === colEnd) ? 'Self' : ''
       ];
 
       const forRowCondition = yIndex => {
@@ -676,12 +516,12 @@ export default {
         }
         return xIndex > colEnd + colOffset;
       };
+
       for (let yIndex = rowStart; forRowCondition(yIndex);) {
         const leftedRowData = this.tableData[yIndex];
         for (let xIndex = colStart; forColCondition(xIndex);) {
           const element = leftedRowData[xIndex];
           expandDirection.forEach(direction => {
-            console.log(direction, rowStart, colStart, rowEnd, colEnd, 'direction, rowStart, colStart, rowEnd, colEnd');
             direction && this[`expand${direction}`](element, rowStart, colStart, rowEnd, colEnd, callback);
           });
           callback(element);
