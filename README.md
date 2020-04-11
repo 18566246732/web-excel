@@ -2,6 +2,8 @@
 
 ## Project setup
 ```
+git clone https://github.com/18566246732/web-excel.git
+cd web-excel
 npm install
 ```
 
@@ -14,11 +16,10 @@ npm run serve
 ```
 npm run build
 ```
+## 设计说明
 
-### Lints and fixes files
-```
-npm run lint
-```
+详情请看语雀🔗
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+https://www.yuque.com/docs/share/ffeadd55-cb56-45a9-bf58-5396e1a2db7c?#
+
+
