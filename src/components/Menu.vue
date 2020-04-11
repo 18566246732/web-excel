@@ -19,7 +19,14 @@
               :disabled="!mergeable"
               @click="drawBorder"
             >
-              {{ '绘制边框' }}
+              绘制边框
+            </el-button>
+            <el-button
+              size="small"
+              :disabled="!mergeable"
+              @click="$emit('removeBorder')"
+            >
+              无边框
             </el-button>
           </span>
         </span>
@@ -28,9 +35,18 @@
             字体设置
           </span>
           <span class="container">
-            <el-button size="small">加粗</el-button>
-            <el-button size="small">斜体</el-button>
-            <el-button size="small">下划线</el-button>
+            <el-button
+              size="small"
+              @click="$emit('fontBold')"
+            >加粗</el-button>
+            <el-button
+              size="small"
+              @click="$emit('fontItalic')"
+            >斜体</el-button>
+            <el-button
+              size="small"
+              @click="$emit('fontUnderscore')"
+            >下划线</el-button>
           </span>
         </span>
         <span class="btn-group">
@@ -38,9 +54,18 @@
             对齐方式
           </span>
           <span class="container">
-            <el-button size="small">左对齐</el-button>
-            <el-button size="small">居中对齐</el-button>
-            <el-button size="small">右对齐</el-button>
+            <el-button
+              size="small"
+              @click="$emit('leftAlign')"
+            >左对齐</el-button>
+            <el-button
+              size="small"
+              @click="$emit('middleAlign')"
+            >居中对齐</el-button>
+            <el-button
+              size="small"
+              @click="$emit('rightAlign')"
+            >右对齐</el-button>
           </span>
         </span>
       </li>
@@ -64,7 +89,7 @@ export default {
       this.$emit('merge');
     },
     drawBorder() {
-      this.$emit('draw-borders');
+      this.$emit('drawBorders');
     }
   }
 };

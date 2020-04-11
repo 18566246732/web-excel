@@ -3,7 +3,14 @@
     <Menu
       :mergeable="isMergeAble"
       :reverse-merge="reverseMerege"
-      @draw-borders="drawBorders"
+      @drawBorders="handleDrawBorders('1px solid black')"
+      @removeBorder="hanldeResetBorder('1px solid rgba(128, 128, 128, 0.21)')"
+      @fontBold="handleFontBold"
+      @fontItalic="handleFontItalic"
+      @fontUnderscore="handleFontUnderscore"
+      @leftAlign="handleLeftAlign"
+      @middleAlign="handleMiddleAlign"
+      @rightAlign="handleRightAlign"
       @merge="handleMerge"
     />
     <table
@@ -112,12 +119,12 @@ export default {
     this.tableData = this.generateEmptyTableData(row, col);
     const tableRowHeaderData = new Array(col).fill({
       style: {
-        'min-width': '80px'
+        "min-width": "80px"
       }
     });
     const tableColHeaderData = new Array(row).fill({
       style: {
-        'height': '40px'
+        height: "40px"
       }
     });
     this.tableRowHeaderData = this.$helper.deepClone(tableRowHeaderData);
@@ -125,46 +132,109 @@ export default {
     this.debouncedMouseMove = this.$helper.throttle(this.handleMouseMove);
   },
   methods: {
+    handleLeftAlign() {
+      this.changeSelectedAreaStyle({ "text-align": "left" });
+    },
+    handleMiddleAlign() {
+      this.changeSelectedAreaStyle({ "text-align": "center" });
+    },
+    handleRightAlign() {
+      this.changeSelectedAreaStyle({ "text-align": "right" });
+    },
+    handleFontBold() {
+      this.changeSelectedAreaStyle({ "font-weight": "bold" });
+    },
+    handleFontItalic() {
+      this.changeSelectedAreaStyle({ "font-style": "italic" });
+    },
+    handleFontUnderscore() {
+      this.changeSelectedAreaStyle({ "text-decoration": "underline" });
+    },
+    hanldeResetBorder(initialborderValue) {
+      this.changeSelectedAreaStyle({
+        "border-left": initialborderValue,
+        "border-right": initialborderValue,
+        "border-top": initialborderValue,
+        "border-bottom": initialborderValue
+      });
+    },
+    changeSelectedAreaStyle(styleObj) {
+      this.mapArea(
+        {},
+        this.activeRowIndex.start,
+        this.activeColIndex.start,
+        this.activeRowIndex.start + this.activeRowIndex.len,
+        this.activeColIndex.start + this.activeColIndex.len,
+        element => {
+          for (const key in styleObj) {
+            if (Object.hasOwnProperty.call(styleObj, key)) {
+              const value = styleObj[key];
+              element.style[key] = value;
+            }
+          }
+        }
+      );
+    },
     handleLockTarget(colData, dragType) {
       this.currentDraggableTarget = colData;
       this.dragType = dragType;
     },
     handleStartDrag(e) {
       this.isDragging = true;
-      if (this.dragType === 'row') {
+      if (this.dragType === "row") {
         this.startDrag.x = e.clientX;
-        this.targetPosition = this.currentDraggableTarget.style['min-width'];
+        this.targetPosition = this.currentDraggableTarget.style["min-width"];
       } else {
         this.startDrag.y = e.clientY;
-        this.targetPosition = this.currentDraggableTarget.style['height'];
+        this.targetPosition = this.currentDraggableTarget.style["height"];
       }
     },
     handleDraging(e) {
       if (!this.isDragging) {
         return;
       }
-      if (this.dragType === 'row') {
+      if (this.dragType === "row") {
         const distance = e.clientX - this.startDrag.x;
-        this.currentDraggableTarget.style['min-width'] = (this.normalizeWidth(this.targetPosition) + distance)+ 'px';
+        this.currentDraggableTarget.style["min-width"] =
+          this.normalizeWidth(this.targetPosition) + distance + "px";
       } else {
         const distance = e.clientY - this.startDrag.y;
-        this.currentDraggableTarget.style['height'] = (this.normalizeWidth(this.targetPosition) + distance)+ 'px';
+        this.currentDraggableTarget.style["height"] =
+          this.normalizeWidth(this.targetPosition) + distance + "px";
       }
     },
-    drawBorders() {
+    handleDrawBorders(borderValue) {
+      console.log("handleDrawBorders");
+
       // left and right
-      for (let i = this.activeRowIndex.start; i < this.activeRowIndex.start + this.activeRowIndex.len; i++) {
-        this.tableData[i][this.activeColIndex.start].style['border-left'] = '1px solid black';
-        this.tableData[i][this.activeColIndex.start + this.activeColIndex.len - 1].style['border-right'] = '1px solid black';
+      for (
+        let i = this.activeRowIndex.start;
+        i < this.activeRowIndex.start + this.activeRowIndex.len;
+        i++
+      ) {
+        this.tableData[i][this.activeColIndex.start].style[
+          "border-left"
+        ] = borderValue;
+        this.tableData[i][
+          this.activeColIndex.start + this.activeColIndex.len - 1
+        ].style["border-right"] = borderValue;
       }
       // top and bottom
-      for (let i = this.activeColIndex.start; i < this.activeColIndex.start + this.activeColIndex.len; i++) {
-        this.tableData[this.activeRowIndex.start][i].style['border-top'] = '1px solid black';
-        this.tableData[this.activeRowIndex.start + this.activeRowIndex.len - 1][i].style['border-bottom'] = '1px solid black';
+      for (
+        let i = this.activeColIndex.start;
+        i < this.activeColIndex.start + this.activeColIndex.len;
+        i++
+      ) {
+        this.tableData[this.activeRowIndex.start][i].style[
+          "border-top"
+        ] = borderValue;
+        this.tableData[this.activeRowIndex.start + this.activeRowIndex.len - 1][
+          i
+        ].style["border-bottom"] = borderValue;
       }
     },
     normalizeWidth(width) {
-      if (typeof width === 'string' && width.endsWith('px')) {
+      if (typeof width === "string" && width.endsWith("px")) {
         return Number(width.slice(0, -2));
       }
       return Number(width);
@@ -193,10 +263,15 @@ export default {
           width: 0,
           display: "table-cell",
           background: "",
-          'border-top': "1px solid #80808036",
-          'border-bottom': '1px solid #80808036',
-          'border-left': "1px solid #80808036",
-          'border-right': '1px solid #80808036',
+          border: "initial",
+          "border-top": "1px solid #80808036",
+          "border-bottom": "1px solid #80808036",
+          "border-left": "1px solid #80808036",
+          "border-right": "1px solid #80808036",
+          "font-weight": "normal",
+          "font-style": "normal",
+          "text-decoration": "initial",
+          "text-align": "center"
         }
       });
       return this.$helper.deepClone(new Array(row).fill(colData));
@@ -306,6 +381,8 @@ export default {
     },
     // 高亮选中
     highlight(colData, rowStart, colStart, rowEnd, colEnd) {
+      console.log('highlight');
+
       if (colStart != colEnd || rowStart != rowEnd) {
         this.isMergeAble = true;
         // 默认情况下是合并
@@ -315,330 +392,302 @@ export default {
         element.style.background = "#03a9f46e";
       });
     },
-    expandRightBottom() {},
-    expandRightTop() {},
-    expandLeftBottom() {},
-    expandLeftTop() {},
+    expandRightBottom(
+      colData,
+      leftedRowData,
+      rowStart,
+      colStart,
+      rowEnd,
+      colEnd,
+      callback
+    ) {
+      for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
+        const element = leftedRowData[xIndex];
+        // 当选区包含合并块，则重置边界值
+        if (element != colData) {
+          // 方块在上，修改终点
+          if (element.master && element.maxCol > colEnd) {
+            this.reverseMerege = true;
+            colEnd = element.maxCol;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在上，修改起点
+          if (element.slave && element.parent.rowIndex < rowStart) {
+            this.reverseMerege = true;
+            rowStart = element.parent.rowIndex;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在下，修改终点
+          if (element.master && element.maxRow > rowEnd) {
+            this.reverseMerege = true;
+            rowEnd = element.maxRow;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在下，修改起点
+          if (element.slave && element.parent.colIndex < colStart) {
+            this.reverseMerege = true;
+            colStart = element.parent.colIndex;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+        }
+        callback(element);
+      }
+    },
+    expandRightTop(
+      colData,
+      leftedRowData,
+      rowStart,
+      colStart,
+      rowEnd,
+      colEnd,
+      callback
+    ) {
+      for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
+        const element = leftedRowData[xIndex];
+        // 当选区包含合并块，则重置边界值
+        if (element != colData) {
+          // 方块在上，修改终点
+          if (element.slave && element.parent.rowIndex < rowEnd) {
+            this.reverseMerege = true;
+            rowEnd = element.parent.rowIndex;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在上，修改起点
+          if (element.slave && element.parent.colIndex < colStart) {
+            this.reverseMerege = true;
+            colStart = element.parent.colIndex;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在下，修改终点
+          if (element.master && element.maxCol > colEnd) {
+            this.reverseMerege = true;
+            colEnd = element.maxCol;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在下，修改起点
+          if (element.master && element.maxRow > rowStart) {
+            this.reverseMerege = true;
+            rowStart = element.maxRow;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+        }
+
+        callback(element);
+      }
+    },
+    expandLeftBottom(
+      colData,
+      leftedRowData,
+      rowStart,
+      colStart,
+      rowEnd,
+      colEnd,
+      callback
+    ) {
+      for (let xIndex = colStart; xIndex > colEnd - 1; xIndex--) {
+        const element = leftedRowData[xIndex];
+        console.log(element != colData, 'element != colData');
+
+        // 当选区包含合并块，则重置边界值
+        if (element != colData) {
+          // 方块在上，修改终点
+          if (element.slave && element.parent.colIndex < colEnd) {
+            this.reverseMerege = true;
+            colEnd = element.parent.colIndex;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在上，修改起点
+          if (element.slave && element.parent.rowIndex < rowStart) {
+            this.reverseMerege = true;
+            rowStart = element.parent.rowIndex;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在下，修改终点
+          if (element.master && element.maxRow > rowEnd) {
+            this.reverseMerege = true;
+            rowEnd = element.maxRow;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在下，修改起点
+          if (element.master && element.maxCol > colStart) {
+            this.reverseMerege = true;
+            colStart = element.maxCol;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+        }
+        callback(element);
+      }
+    },
+    expandLeftTop(
+      colData,
+      leftedRowData,
+      rowStart,
+      colStart,
+      rowEnd,
+      colEnd,
+      callback
+    ) {
+      for (let xIndex = colStart; xIndex > colEnd - 1; xIndex--) {
+        const element = leftedRowData[xIndex];
+        // 当选区包含合并块，则重置边界值
+        if (element != colData) {
+          // 方块在上，修改终点
+          if (element.slave && element.parent.rowIndex < rowEnd) {
+            this.reverseMerege = true;
+            rowEnd = element.parent.rowIndex;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在上，修改起点
+          if (element.master && element.maxCol > colStart) {
+            this.reverseMerege = true;
+            colStart = element.maxCol;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在下，修改终点
+          if (element.slave && element.parent.colIndex < colEnd) {
+            this.reverseMerege = true;
+            colEnd = element.parent.colIndex;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+
+          // 方块在下，修改起点
+          if (element.master && element.maxRow > rowStart) {
+            this.reverseMerege = true;
+            rowStart = element.maxRow;
+            this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+          }
+        }
+        callback(element);
+      }
+    },
+    expandLeft(
+      element, rowStart, colStart, rowEnd, colEnd, callback
+    ) {
+      console.log('expandLeft');
+      // 方块在上，修改起点行
+      if (element.slave && element.parent.rowIndex < rowEnd) {
+        this.reverseMerege = true;
+        rowEnd = element.parent.rowIndex;
+        this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+      }
+
+      // 方块在下，修改终点行
+      if (element.master && element.maxRow > rowStart) {
+        this.reverseMerege = true;
+        rowStart = element.maxRow;
+        this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+      }
+    },
+    expandRight(
+      element, rowStart, colStart, rowEnd, colEnd, callback
+    ) {
+      console.log('expandRight');
+      // 当选区包含合并块，则重置边界值
+      // 方块在下，修改终点行
+      if (element.master && element.maxRow > rowEnd) {
+        this.reverseMerege = true;
+        rowEnd = element.maxRow;
+        this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+      }
+      // 方块在上，修改起点行
+      if (element.slave && element.parent.rowIndex < rowStart) {
+        this.reverseMerege = true;
+        rowStart = element.parent.rowIndex;
+        this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+      }
+    },
+    expandTop(
+      element, rowStart, colStart, rowEnd, colEnd, callback
+    ) {
+      console.log('expandTop');
+      // 方块在左，修改起点列
+      if (element.slave && element.parent.colIndex < colEnd) {
+        this.reverseMerege = true;
+        colEnd = element.parent.colIndex;
+        this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+      }
+
+      // 方块在右，修改终点列
+      if (element.master && element.maxCol > colStart) {
+        this.reverseMerege = true;
+        colStart = element.maxCol;
+        this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+      }
+    },
+    expandBottom(
+      element, rowStart, colStart, rowEnd, colEnd, callback
+    ) {
+      console.log('expandBottom');
+
+      // 方块在左，修改起点列
+      if (element.slave && element.parent.colIndex < colStart) {
+        this.reverseMerege = true;
+        colStart = element.parent.colIndex;
+        this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+      }
+
+      // 方块在右，修改终点列
+      if (element.master && element.maxCol > colEnd) {
+        this.reverseMerege = true;
+        colEnd = element.maxCol;
+        this.mapArea(element, rowStart, colStart, rowEnd, colEnd, callback);
+      }
+    },
     // 创建选区
     mapArea(colData, rowStart, colStart, rowEnd, colEnd, callback) {
+      console.log(rowStart, colStart, rowEnd, colEnd, 'rowStart, colStart, rowEnd, colEnd');
+
       // 在merge状态时，禁止更新激活的下标
       if (this.isChoosingMode) {
         this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
       }
-      // 向下
-      if (rowEnd >= rowStart) {
-        // 对于合并单元格，需要选中最大y值
-        if (colData.master) {
-          rowEnd = colData.maxRow;
-          this.reverseMerege = true;
-          this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
-          this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+      const rowOffset = rowEnd >= rowStart ? 1 : -1;
+      const colOffset = colEnd > colStart ? 1 : -1;
+
+
+      const expandDirection = [
+        rowEnd > rowStart ? 'Bottom' : '',
+        rowEnd < rowStart ? 'Top' : '',
+        colEnd > colStart ? 'Right' : '',
+        colEnd < colStart ? 'Left' : ''
+      ];
+
+      const forRowCondition = yIndex => {
+        if (rowEnd >= rowStart) {
+          return yIndex < rowEnd + rowOffset;
         }
-        for (let yIndex = rowStart; yIndex < rowEnd + 1; yIndex++) {
-          const leftedRowData = this.tableData[yIndex];
-          // 向右
-          if (colEnd > colStart) {
-            console.log("右下");
-            if (colData.master) {
-              colEnd = colData.maxCol;
-              this.reverseMerege = true;
-              this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
-              this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
-            }
-            for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
-              const element = leftedRowData[xIndex];
-              // 当选区包含合并块，则重置边界值
-              if (element != colData) {
-                // 方块在上，修改终点
-                if (element.master && element.maxCol > colEnd) {
-                  this.reverseMerege = true;
-                  colEnd = element.maxCol;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
+        return yIndex > rowEnd + rowOffset;
+      };
 
-                // 方块在上，修改起点
-                if (element.slave && element.parent.rowIndex < rowStart) {
-                  this.reverseMerege = true;
-                  rowStart = element.parent.rowIndex;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在下，修改终点
-                if (element.master && element.maxRow > rowEnd) {
-                  this.reverseMerege = true;
-                  rowEnd = element.maxRow;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在下，修改起点
-                if (element.slave && element.parent.colIndex < colStart) {
-                  this.reverseMerege = true;
-                  colStart = element.parent.colIndex;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-              }
-              callback(element);
-            }
-          }
-          // 向左
-          if (colEnd <= colStart) {
-            console.log("左下");
-            if (colData.master) {
-              colEnd = colData.maxCol;
-              this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
-              this.reverseMerege = true;
-              this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
-            }
-            console.log(colData, "colData");
-
-            for (let xIndex = colStart; xIndex > colEnd - 1; xIndex--) {
-              const element = leftedRowData[xIndex];
-              // 当选区包含合并块，则重置边界值
-              if (element != colData) {
-                // 方块在上，修改终点
-                if (element.slave && element.parent.colIndex < colEnd) {
-                  this.reverseMerege = true;
-                  colEnd = element.parent.colIndex;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在上，修改起点
-                if (element.slave && element.parent.rowIndex < rowStart) {
-                  this.reverseMerege = true;
-                  rowStart = element.parent.rowIndex;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在下，修改终点
-                if (element.master && element.maxRow > rowEnd) {
-                  this.reverseMerege = true;
-                  rowEnd = element.maxRow;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在下，修改起点
-                if (element.master && element.maxCol > colStart) {
-                  this.reverseMerege = true;
-                  colStart = element.maxCol;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-              }
-              callback(element);
-            }
-          }
+      const forColCondition = xIndex => {
+        if (colEnd > colStart) {
+          return xIndex < colEnd + colOffset;
         }
-      }
-      // 向上
-      if (rowEnd < rowStart) {
-        if (colData.master) {
-          colEnd = colData.maxCol;
-          this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
-          this.reverseMerege = true;
-          this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
+        return xIndex > colEnd + colOffset;
+      };
+      for (let yIndex = rowStart; forRowCondition(yIndex);) {
+        const leftedRowData = this.tableData[yIndex];
+        for (let xIndex = colStart; forColCondition(xIndex);) {
+          const element = leftedRowData[xIndex];
+          expandDirection.forEach(direction => {
+            console.log(direction, rowStart, colStart, rowEnd, colEnd, 'direction, rowStart, colStart, rowEnd, colEnd');
+            direction && this[`expand${direction}`](element, rowStart, colStart, rowEnd, colEnd, callback);
+          });
+          callback(element);
+          colEnd > colStart ? xIndex++ : xIndex--;
         }
-        for (let yIndex = rowStart; yIndex > rowEnd - 1; yIndex--) {
-          const leftedRowData = this.tableData[yIndex];
-          // 向右
-          if (colEnd > colStart) {
-            if (colData.master) {
-              rowStart = colData.maxRow;
-              this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
-              this.reverseMerege = true;
-              this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
-            }
-            for (let xIndex = colStart; xIndex < colEnd + 1; xIndex++) {
-              const element = leftedRowData[xIndex];
-              // 当选区包含合并块，则重置边界值
-              if (element != colData) {
-                // 方块在上，修改终点
-                if (element.slave && element.parent.rowIndex < rowEnd) {
-                  this.reverseMerege = true;
-                  rowEnd = element.parent.rowIndex;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在上，修改起点
-                if (element.slave && element.parent.colIndex < colStart) {
-                  this.reverseMerege = true;
-                  colStart = element.parent.colIndex;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在下，修改终点
-                if (element.master && element.maxCol > colEnd) {
-                  this.reverseMerege = true;
-                  colEnd = element.maxCol;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在下，修改起点
-                if (element.master && element.maxRow > rowStart) {
-                  this.reverseMerege = true;
-                  rowStart = element.maxRow;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-              }
-
-              callback(element);
-            }
-          }
-          // 向左
-          if (colEnd <= colStart) {
-            console.log("左上");
-            if (colData.master) {
-              colEnd = colData.maxCol;
-              this.updateActiveIndex(rowStart, colStart, rowEnd, colEnd);
-              this.reverseMerege = true;
-              this.mapArea({}, rowStart, colStart, rowEnd, colEnd, callback);
-            }
-            for (let xIndex = colStart; xIndex > colEnd - 1; xIndex--) {
-              const element = leftedRowData[xIndex];
-              // 当选区包含合并块，则重置边界值
-              if (element != colData) {
-                // 方块在上，修改终点
-                if (element.slave && element.parent.rowIndex < rowEnd) {
-                  this.reverseMerege = true;
-                  rowEnd = element.parent.rowIndex;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在上，修改起点
-                if (element.master && element.maxCol > colStart) {
-                  this.reverseMerege = true;
-                  colStart = element.maxCol;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在下，修改终点
-                if (element.slave && element.parent.colIndex < colEnd) {
-                  this.reverseMerege = true;
-                  colEnd = element.parent.colIndex;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-
-                // 方块在下，修改起点
-                if (element.master && element.maxRow > rowStart) {
-                  this.reverseMerege = true;
-                  rowStart = element.maxRow;
-                  this.mapArea(
-                    element,
-                    rowStart,
-                    colStart,
-                    rowEnd,
-                    colEnd,
-                    callback
-                  );
-                }
-              }
-              callback(element);
-            }
-          }
-        }
+        rowEnd >= rowStart ? yIndex++ : yIndex--;
       }
     },
     handleMerge() {
@@ -650,7 +699,6 @@ export default {
       );
     },
     updateActiveIndex(rowStart, colStart, rowEnd, colEnd) {
-
       const startY = Math.min(rowStart, rowEnd);
       const startX = Math.min(colStart, colEnd);
       const endY = Math.max(rowStart, rowEnd);
@@ -692,7 +740,7 @@ export default {
   .header {
     background: grey;
     color: white;
-    position: relative;;
+    position: relative;
     // pointer-events: none;
     -webkit-user-select: none;
     user-select: none;
