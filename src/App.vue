@@ -5,12 +5,21 @@
       :reverse-merge="reverseMerege"
       @drawBorders="handleDrawBorders('1px solid black')"
       @removeBorder="hanldeResetBorder('1px solid rgba(128, 128, 128, 0.21)')"
+
       @fontBold="handleFontBold"
       @fontItalic="handleFontItalic"
       @fontUnderscore="handleFontUnderscore"
+
+      @cancelFontBold="handleCancelFontBold"
+      @cancelFontItalic="handleCancelFontItalic"
+      @cancelFontUnderscore="handleCancelFontUnderscore"
+
       @leftAlign="handleLeftAlign"
-      @middleAlign="handleMiddleAlign"
+      @horizontalCenterAlign="handleHorizontalCenterAlign"
       @rightAlign="handleRightAlign"
+      @topAlign="handleTopAlign"
+      @bottomAlign="handleBottomAlign"
+      @verticalCenterAlign="handleVerticalCenterAlign"
       @merge="handleMerge"
     />
     <table
@@ -132,23 +141,41 @@ export default {
     this.debouncedMouseMove = this.$helper.throttle(this.handleMouseMove);
   },
   methods: {
-    handleLeftAlign() {
-      this.changeSelectedAreaStyle({ "text-align": "left" });
-    },
-    handleMiddleAlign() {
-      this.changeSelectedAreaStyle({ "text-align": "center" });
-    },
-    handleRightAlign() {
-      this.changeSelectedAreaStyle({ "text-align": "right" });
-    },
-    handleFontBold() {
-      this.changeSelectedAreaStyle({ "font-weight": "bold" });
-    },
     handleFontItalic() {
       this.changeSelectedAreaStyle({ "font-style": "italic" });
     },
     handleFontUnderscore() {
       this.changeSelectedAreaStyle({ "text-decoration": "underline" });
+    },
+    handleFontBold() {
+      this.changeSelectedAreaStyle({ "font-weight": "bold" });
+    },
+    handleCancelFontBold() {
+      this.changeSelectedAreaStyle({ "font-weight": "normal" });
+    },
+    handleCancelFontItalic() {
+      this.changeSelectedAreaStyle({ "font-style": "normal" });
+    },
+    handleCancelFontUnderscore() {
+      this.changeSelectedAreaStyle({ "text-decoration": "initial" });
+    },
+    handleLeftAlign() {
+      this.changeSelectedAreaStyle({ "text-align": "left" });
+    },
+    handleHorizontalCenterAlign() {
+      this.changeSelectedAreaStyle({ "text-align": "center" });
+    },
+    handleRightAlign() {
+      this.changeSelectedAreaStyle({ "text-align": "right" });
+    },
+    handleTopAlign() {
+      this.changeSelectedAreaStyle({ "vertical-align": "top" });
+    },
+    handleBottomAlign() {
+      this.changeSelectedAreaStyle({ "vertical-align": "bottom" });
+    },
+    handleVerticalCenterAlign() {
+      this.changeSelectedAreaStyle({ "vertical-align": "middle" });
     },
     hanldeResetBorder(initialborderValue) {
       this.changeSelectedAreaStyle({
@@ -271,7 +298,8 @@ export default {
           "font-weight": "normal",
           "font-style": "normal",
           "text-decoration": "initial",
-          "text-align": "center"
+          "text-align": "center",
+          "vertical-align": "middle"
         }
       });
       return this.$helper.deepClone(new Array(row).fill(colData));
@@ -564,7 +592,7 @@ export default {
 
 .playground {
   border: 1px;
-  margin-top: 80px;
+  margin-top: 120px;
   overflow-x: scroll;
   td {
     height: 40px;

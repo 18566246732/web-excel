@@ -7,27 +7,29 @@
             单元格设置
           </span>
           <span class="container">
-            <el-button
-              size="small"
-              :disabled="!mergeable"
-              @click="merge"
-            >
-              {{ reverseMerge ? '取消合并' : '合并' }}
-            </el-button>
-            <el-button
-              size="small"
-              :disabled="!mergeable"
-              @click="drawBorder"
-            >
-              绘制边框
-            </el-button>
-            <el-button
-              size="small"
-              :disabled="!mergeable"
-              @click="$emit('removeBorder')"
-            >
-              无边框
-            </el-button>
+            <span class="row">
+              <el-button
+                size="mini"
+                :disabled="!mergeable"
+                @click="merge"
+              >
+                {{ reverseMerge ? '取消合并' : '合并' }}
+              </el-button>
+              <el-button
+                size="mini"
+                :disabled="!mergeable"
+                @click="drawBorder"
+              >
+                绘制边框
+              </el-button>
+              <el-button
+                size="mini"
+                :disabled="!mergeable"
+                @click="$emit('removeBorder')"
+              >
+                无边框
+              </el-button>
+            </span>
           </span>
         </span>
         <span class="btn-group">
@@ -35,18 +37,34 @@
             字体设置
           </span>
           <span class="container">
-            <el-button
-              size="small"
-              @click="$emit('fontBold')"
-            >加粗</el-button>
-            <el-button
-              size="small"
-              @click="$emit('fontItalic')"
-            >斜体</el-button>
-            <el-button
-              size="small"
-              @click="$emit('fontUnderscore')"
-            >下划线</el-button>
+            <span class="row">
+              <el-button
+                size="mini"
+                @click="$emit('fontBold')"
+              >加粗</el-button>
+              <el-button
+                size="mini"
+                @click="$emit('fontItalic')"
+              >斜体</el-button>
+              <el-button
+                size="mini"
+                @click="$emit('fontUnderscore')"
+              >下划线</el-button>
+            </span>
+            <span class="row">
+              <el-button
+                size="mini"
+                @click="$emit('cancelFontBold')"
+              >取消加粗</el-button>
+              <el-button
+                size="mini"
+                @click="$emit('cancelFontItalic')"
+              >取消斜体</el-button>
+              <el-button
+                size="mini"
+                @click="$emit('cancelFontUnderscore')"
+              >取消下划线</el-button>
+            </span>
           </span>
         </span>
         <span class="btn-group">
@@ -54,18 +72,34 @@
             对齐方式
           </span>
           <span class="container">
-            <el-button
-              size="small"
-              @click="$emit('leftAlign')"
-            >左对齐</el-button>
-            <el-button
-              size="small"
-              @click="$emit('middleAlign')"
-            >居中对齐</el-button>
-            <el-button
-              size="small"
-              @click="$emit('rightAlign')"
-            >右对齐</el-button>
+            <span class="row">
+              <el-button
+                size="mini"
+                @click="$emit('leftAlign')"
+              >左对齐</el-button>
+              <el-button
+                size="mini"
+                @click="$emit('horizontalCenterAlign')"
+              >水平居中</el-button>
+              <el-button
+                size="mini"
+                @click="$emit('rightAlign')"
+              >右对齐</el-button>
+            </span>
+            <span class="row">
+              <el-button
+                size="mini"
+                @click="$emit('topAlign')"
+              >上对齐</el-button>
+              <el-button
+                size="mini"
+                @click="$emit('verticalCenterAlign')"
+              >垂直居中</el-button>
+              <el-button
+                size="mini"
+                @click="$emit('bottomAlign')"
+              >下对齐</el-button>
+            </span>
           </span>
         </span>
       </li>
@@ -102,7 +136,7 @@ export default {
     top: 0;
     left: 0;
     right: 0;
-    height: 70px;
+    height: 100px;
     background: grey;
     align-items: center;
     color: white;
@@ -110,6 +144,14 @@ export default {
     .menu {
       display: flex;
       align-items: center;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      .row {
+        text-align: left;
+        margin-bottom: 5px;
+      }
     }
     // button {
     //   background: #0DB3A6;
